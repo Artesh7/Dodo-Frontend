@@ -1,0 +1,17 @@
+import Hero from "./components/Hero";
+import Navbar from "./components/Navbar";
+import HomeCards from "./components/HomeCards";
+import TodoListings from "./components/TodoListings";
+const App = () => {
+  return (
+    <>
+      <Navbar />
+      <Hero title= "Create your Todo List" subtitle= " A simple todo list app to keep track of your tasks" />
+      <HomeCards />
+      <TodoListings />
+
+    </>
+  )
+};
+
+export default App;
