@@ -9,21 +9,36 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userName, setUserName] = useState("User");
+  const [role, setRole] = useState(null);           // <-- tilføjet for at tjekke om role = child
+  const [profile, setProfile] = useState(null);     // <-- kun til modal-visning
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
+  // Hent profil ved login, men åbn IKKE modal automatisk
   useEffect(() => {
     const fetchProfile = async () => {
       if (auth.token) {
         try {
-          const profile = await userService.getProfile();
-          setUserName(profile.userName);
+          const profileData = await userService.getProfile();
+          setUserName(profileData.userName);
+          setRole(profileData.role);
         } catch (error) {
           console.error("Failed to fetch profile:", error);
         }
       }
     };
-
     fetchProfile();
   }, [auth.token]);
+
+  // Klik på "Profile"-knap => åbn modal eksplicit
+  const handleProfileClick = async () => {
+    try {
+      const profileData = await userService.getProfile();
+      setProfile(profileData);
+      setShowProfileModal(true);
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    }
+  };
 
   return (
     <nav className="bg-indigo-700 border-b border-indigo-500">
@@ -32,19 +47,22 @@ function Navbar() {
           {/* Left: Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <img className="h-16 w-auto" src={Logo} alt="TODOZ Logo" />
+              <img className="h-8 w-auto" src={Logo} alt="TODOZ Logo" />
               <span className="text-white text-xl font-bold ml-2">TODOZ</span>
             </Link>
           </div>
 
           {/* Right: Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link
-              to="/"
-              className="text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2"
-            >
-              Home
-            </Link>
+            {/* Skjul Home, hvis logget ind */}
+            {!auth.token && (
+              <Link
+                to="/"
+                className="text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2"
+              >
+                Home
+              </Link>
+            )}
 
             {auth.token ? (
               <>
@@ -54,12 +72,17 @@ function Navbar() {
                 >
                   Todos
                 </Link>
-                <Link
-                  to="/childs"
-                  className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
-                >
-                  Childs
-                </Link>
+
+                {/* Childs knap skjules for child-brugere */}
+                {role !== "child" && (
+                  <Link
+                    to="/childs"
+                    className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
+                  >
+                    Childs
+                  </Link>
+                )}
+
                 <Link
                   to="/add-todo"
                   className="text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2"
@@ -91,6 +114,12 @@ function Navbar() {
                   </button>
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <button
+                        onClick={handleProfileClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Profile
+                      </button>
                       <button
                         onClick={logout}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -142,12 +171,15 @@ function Navbar() {
       {isMobileMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link
-              to="/"
-              className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
-            >
-              Home
-            </Link>
+            {/* Skjul Home, hvis logget ind */}
+            {!auth.token && (
+              <Link
+                to="/"
+                className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
+              >
+                Home
+              </Link>
+            )}
 
             {auth.token ? (
               <>
@@ -157,18 +189,29 @@ function Navbar() {
                 >
                   Todos
                 </Link>
-                <Link
-                  to="/childs"
-                  className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
-                >
-                  Childs
-                </Link>
+
+                {/* Childs knap skjules for child-brugere */}
+                {role !== "child" && (
+                  <Link
+                    to="/childs"
+                    className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
+                  >
+                    Childs
+                  </Link>
+                )}
+
                 <Link
                   to="/add-todo"
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
                 >
                   Add Todo
                 </Link>
+                <button
+                  onClick={handleProfileClick}
+                  className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
+                >
+                  Profile
+                </button>
                 <button
                   onClick={logout}
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
@@ -184,6 +227,30 @@ function Navbar() {
                 Login
               </Link>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Profile Modal: vises kun hvis showProfileModal === true */}
+      {showProfileModal && profile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Profile Details</h2>
+            <p>
+              <strong>Username:</strong> {profile.userName}
+            </p>
+            <p>
+              <strong>Email:</strong> {profile.email}
+            </p>
+            <p>
+              <strong>Role:</strong> {profile.role || "N/A"}
+            </p>
+            <button
+              className="mt-4 bg-indigo-700 text-white py-2 px-4 rounded hover:bg-indigo-600"
+              onClick={() => setShowProfileModal(false)}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

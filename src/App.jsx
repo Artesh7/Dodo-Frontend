@@ -12,6 +12,7 @@ import Todos from "./components/Todos";
 import Home from "./components/Home";
 import Childs from "./components/Childs";
 import { AuthProvider } from "./contexts/AuthContext";
+import CreateUser from "./components/CreateUser"; // <-- Tilføj denne import
 
 function App() {
   return (
@@ -26,7 +27,6 @@ function App() {
               </MainLayout>
             }
           />
-
           <Route
             path="/login"
             element={
@@ -35,6 +35,17 @@ function App() {
               </MainLayout>
             }
           />
+          
+          {/* Ny route til sign up */}
+          <Route
+            path="/signup"
+            element={
+              <MainLayout>
+                <CreateUser />
+              </MainLayout>
+            }
+          />
+
           <Route
             path="/dashboard"
             element={
@@ -65,7 +76,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
         </Routes>
       </Router>
     </AuthProvider>

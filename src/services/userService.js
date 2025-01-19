@@ -19,6 +19,17 @@ const userService = {
       throw error;
     }
   },
+
+  // Ny metode til at oprette bruger
+  createUser: async (userData) => {
+    try {
+      const response = await api.post("/User/create", userData);
+      return response.data; // typisk status
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;
