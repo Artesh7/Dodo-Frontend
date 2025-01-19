@@ -32,7 +32,7 @@ function Navbar() {
           {/* Left: Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <img className="h-8 w-auto" src={Logo} alt="TODOZ Logo" />
+              <img className="h-16 w-auto" src={Logo} alt="TODOZ Logo" />
               <span className="text-white text-xl font-bold ml-2">TODOZ</span>
             </Link>
           </div>
