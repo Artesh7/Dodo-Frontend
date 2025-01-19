@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from "react";
 import todoService from "../services/todoService";
-import userService from "../services/userService";  // Hent profil for rolle
+import userService from "../services/userService";
 import TodoCard from "./TodoCard";
 
 const Todos = () => {
   const [todos, setTodos] = useState([]);
-  const [filter, setFilter] = useState("All"); // Default filter
+  const [filter, setFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [role, setRole] = useState(null);
 
-  // Hent rolle fra /User/profile (så vi ved om det er en child)
+  // 1) Hent role fra profile
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const profileData = await userService.getProfile();
         setRole(profileData.role);
 
-        // Hvis brugeren er "child", sæt filter = "Mine" og lad dropdown forsvinde
-        if (profileData.role === "child") {
+        // Hvis brugeren er "child", sæt filter = "Mine"
+        if (profileData.role?.toLowerCase() === "child") {
           setFilter("Mine");
         }
       } catch (err) {
@@ -29,12 +29,13 @@ const Todos = () => {
     fetchProfile();
   }, []);
 
-  // Hent todos på baggrund af filter
+  // 2) Hent todos baseret på filter
   useEffect(() => {
     const fetchTodos = async () => {
       setLoading(true);
       try {
         const response = await todoService.getTodos(filter);
+        // Simpel visuel "indlæsnings-effekt"
         const todosWithLoading = response.map((todo) => ({
           ...todo,
           isLoading: true,
@@ -55,6 +56,7 @@ const Todos = () => {
         setLoading(false);
       }
     };
+
     fetchTodos();
   }, [filter]);
 
@@ -62,12 +64,16 @@ const Todos = () => {
     return <div className="p-4 text-red-500">{error}</div>;
   }
 
+  // Er brugeren child? (=> ingen dropdown)
+  const isChild = role?.toLowerCase() === "child";
+
   return (
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Todos</h1>
-        {/* Skjul filter, hvis brugerens rolle er child */}
-        {role !== "child" && (
+
+        {/* 3) Hvis IKKE child, vis filter-dropdown */}
+        {!isChild && (
           <select
             id="filter"
             value={filter}
@@ -80,6 +86,7 @@ const Todos = () => {
           </select>
         )}
       </div>
+
       {/* Todos Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading
@@ -89,7 +96,7 @@ const Todos = () => {
                 <div
                   key={index}
                   className="bg-gray-200 h-32 animate-pulse rounded"
-                ></div>
+                />
               ))
           : todos.map((todo) => <TodoCard key={todo.id} todo={todo} />)}
       </div>

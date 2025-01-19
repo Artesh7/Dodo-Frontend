@@ -9,18 +9,17 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userName, setUserName] = useState("User");
-  const [role, setRole] = useState(null);           // <-- tilføjet for at tjekke om role = child
-  const [profile, setProfile] = useState(null);     // <-- kun til modal-visning
+  const [role, setRole] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  // Hent profil ved login, men åbn IKKE modal automatisk
   useEffect(() => {
     const fetchProfile = async () => {
       if (auth.token) {
         try {
           const profileData = await userService.getProfile();
           setUserName(profileData.userName);
-          setRole(profileData.role);
+          setRole(profileData.role); // Gem hele role-strengen
         } catch (error) {
           console.error("Failed to fetch profile:", error);
         }
@@ -29,7 +28,6 @@ function Navbar() {
     fetchProfile();
   }, [auth.token]);
 
-  // Klik på "Profile"-knap => åbn modal eksplicit
   const handleProfileClick = async () => {
     try {
       const profileData = await userService.getProfile();
@@ -40,11 +38,14 @@ function Navbar() {
     }
   };
 
+  // Brug en hjælpemetode til at tjekke "child"
+  const isChild = role && role.toLowerCase() === "child";
+
   return (
     <nav className="bg-indigo-700 border-b border-indigo-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Left: Logo */}
+          {/* Venstre side: Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <img className="h-8 w-auto" src={Logo} alt="TODOZ Logo" />
@@ -52,9 +53,9 @@ function Navbar() {
             </Link>
           </div>
 
-          {/* Right: Desktop Navigation */}
+          {/* Højre side: Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Skjul Home, hvis logget ind */}
+            {/* Skjul Home-knap, når brugeren er logget ind */}
             {!auth.token && (
               <Link
                 to="/"
@@ -64,6 +65,7 @@ function Navbar() {
               </Link>
             )}
 
+            {/* Hvis logget ind */}
             {auth.token ? (
               <>
                 <Link
@@ -73,8 +75,8 @@ function Navbar() {
                   Todos
                 </Link>
 
-                {/* Childs knap skjules for child-brugere */}
-                {role !== "child" && (
+                {/* Childs-knappen: vises kun, hvis role !== 'child' */}
+                {!isChild && (
                   <Link
                     to="/childs"
                     className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
@@ -89,6 +91,8 @@ function Navbar() {
                 >
                   Add Todo
                 </Link>
+
+                {/* Dropdown for profil/logout */}
                 <div className="relative">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -140,7 +144,7 @@ function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile-menu-knap (hamburger) */}
           <div className="-mr-2 flex md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -167,11 +171,11 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile-menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {/* Skjul Home, hvis logget ind */}
+            {/* Skjul Home-knap, når logget ind */}
             {!auth.token && (
               <Link
                 to="/"
@@ -190,8 +194,8 @@ function Navbar() {
                   Todos
                 </Link>
 
-                {/* Childs knap skjules for child-brugere */}
-                {role !== "child" && (
+                {/* Childs-knappen: kun hvis IKKE child */}
+                {!isChild && (
                   <Link
                     to="/childs"
                     className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
@@ -206,6 +210,7 @@ function Navbar() {
                 >
                   Add Todo
                 </Link>
+
                 <button
                   onClick={handleProfileClick}
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
@@ -231,7 +236,7 @@ function Navbar() {
         </div>
       )}
 
-      {/* Profile Modal: vises kun hvis showProfileModal === true */}
+      {/* Profile Modal */}
       {showProfileModal && profile && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded shadow-lg w-96">
