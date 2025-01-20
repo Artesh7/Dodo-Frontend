@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import userService from "../services/userService";
@@ -9,95 +9,83 @@ function CreateTodo() {
   const navigate = useNavigate();
   const { auth } = useAuth();
 
-  // Her gemmer vi detaljer om den Todo, vi vil oprette
+  // Felter til selve todo
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [childId, setChildId] = useState("");
 
-  // Her gemmer vi eventuel rolle fra profile
+  // Hvis man er parent, kan man evt. tildele childId
+  const [childId, setChildId] = useState("");
   const [role, setRole] = useState(null);
-  // Liste over alle mulige "childs" (kun relevant for parent)
   const [children, setChildren] = useState([]);
 
-  // En liste med tasks, der knyttes til todoen
+  // Tasks-liste. Start evt. med 1 tom opgave
   const [tasks, setTasks] = useState([
-    // Eksempel på en enkelt "tom" task
     { description: "", isCompleted: false },
   ]);
 
-  // Hent profil + childs, hvis man er parent
+  // Hent profil (rolle) + childs (hvis parent)
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (auth.token) {
-          // Hent rolle
           const profileData = await userService.getProfile();
           setRole(profileData.role);
 
-          // Hvis rolle = parent => Hent liste over alle childs
+          // Hvis parent, hent liste over child-brugere
           if (profileData.role?.toLowerCase() === "parent") {
             const childList = await userService.getChildren();
-            // childList bør være et array af {id, userName, ...}
             setChildren(childList);
           }
         }
       } catch (error) {
-        console.error("Fejl ved hentning af data:", error);
+        console.error("Failed to fetch user profile or children:", error);
       }
     };
     fetchData();
   }, [auth.token]);
 
-  // Funktion til at tilføje endnu et task-felt
+  // Tjek om bruger er child
+  const isChild = role?.toLowerCase() === "child";
+
+  // Tilføj endnu en tom task-linje
   const handleAddTask = () => {
     setTasks((prev) => [...prev, { description: "", isCompleted: false }]);
   };
 
-  // Håndtering af ændringer i tasks-felterne
+  // Opdater et felt i en given task
   const handleTaskChange = (index, field, value) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index][field] = value;
-    setTasks(updatedTasks);
+    const updated = [...tasks];
+    updated[index][field] = value;
+    setTasks(updated);
   };
 
-  // Når vi trykker "Done": Opret todo, og derefter opret tasks
+  // Håndter "Done" -> opret todo, opret tasks
   const handleCreateTodo = async () => {
     try {
-      // 1) Opret Todo
-      //    Hvis man er child, undlades childId i body (eller send en tom str.).
-      const todoBody = {
-        title,
-        description,
-      };
-
-      // Hvis man er parent, og childId IKKE er tom => Tilføj childId
-      if (role?.toLowerCase() === "parent" && childId) {
-        todoBody.childId = childId;
-      }
-
-      const createdTodo = await todoService.createTodo(todoBody);
-      const newTodoId = createdTodo.id; // Forvent, at serveren returnerer { id: "some-guid", ... }
-
-      // 2) Opret tasks (hvis tasks-arrayet har noget)
-      // Bemærk: du kan også filtrere tomme tasks ud
-      for (const task of tasks) {
-        if (task.description.trim() !== "") {
+      // 1) Opret selve todo
+      const created = await todoService.createTodo({ title, description });
+      // created er fx { message: "...", todo: { id: "..." } }
+  
+      // 2) Tag ID fra created.todo.id
+      const newTodoId = created.todo.id;
+  
+      // 3) Opret tasks med newTodoId
+      for (const t of tasks) {
+        if (t.description.trim()) {
           await taskService.createTask(newTodoId, {
-            description: task.description,
-            isCompleted: task.isCompleted,
+            description: t.description,
+            isCompleted: t.isCompleted,
           });
         }
       }
-
-      // 3) Naviger tilbage til /todos
+  
       navigate("/todos");
-    } catch (err) {
-      console.error("Fejl ved oprettelse af todo/tasks:", err);
+    } catch (error) {
+      console.error("Failed to create todo + tasks:", error);
     }
   };
-
-  // Er brugeren child? => Ingen dropdown for childId
-  const isChild = role?.toLowerCase() === "child";
+  
+  
 
   return (
     <div className="max-w-xl mx-auto p-4 bg-white shadow">
@@ -120,7 +108,7 @@ function CreateTodo() {
         className="w-full p-2 border border-gray-300 rounded mb-4"
       />
 
-      {/* Child dropdown (kun for parent) */}
+      {/* Assign Child (kun hvis parent) */}
       {!isChild && (
         <>
           <label className="block mb-2 font-semibold">
@@ -141,7 +129,7 @@ function CreateTodo() {
         </>
       )}
 
-      {/* Tasks - dynamisk liste */}
+      {/* Tasks-section */}
       <div className="mb-4">
         <h2 className="font-semibold mb-2">Tasks</h2>
         {tasks.map((task, index) => (
@@ -150,25 +138,24 @@ function CreateTodo() {
               type="text"
               placeholder="Task description"
               value={task.description}
-              onChange={(e) =>
-                handleTaskChange(index, "description", e.target.value)
-              }
+              onChange={(e) => handleTaskChange(index, "description", e.target.value)}
               className="flex-1 p-2 border border-gray-300 rounded mr-2"
             />
-            <label className="mr-2">
+            <label className="flex items-center">
               <input
                 type="checkbox"
+                className="mr-1"
                 checked={task.isCompleted}
                 onChange={(e) =>
                   handleTaskChange(index, "isCompleted", e.target.checked)
                 }
-              />{" "}
-              Completed
+              />
+              <span>Completed</span>
             </label>
           </div>
         ))}
 
-        {/* Grøn plus-knap til at tilføje flere tasks */}
+        {/* Grøn plus-knap -> tilføj ny tom task */}
         <button
           type="button"
           onClick={handleAddTask}
@@ -178,7 +165,7 @@ function CreateTodo() {
         </button>
       </div>
 
-      {/* Done-knap => Opret todo + tasks */}
+      {/* Done-knap -> create todo + tasks */}
       <button
         onClick={handleCreateTodo}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
