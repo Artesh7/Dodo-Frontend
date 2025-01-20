@@ -1,43 +1,47 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import todoService from "../services/todoService";
 import taskService from "../services/taskService";
 
 function TodoDetails() {
-  const { id } = useParams(); // /todo/:id
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [todo, setTodo] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Lokale states til redigering af todo
+  // Felter til redigering
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  // En kopi af tasks i "todo"
-  const [tasks, setTasks] = useState([]);
-  // Gemmer IDs på tasks, der er “slettes” ved Save
+
+  // IDs for tasks, der skal slettes ved save
   const [deletedTaskIds, setDeletedTaskIds] = useState([]);
 
-  // Hent todo med tasks
+  // State til at vise den lille “delete-confirm”-modal
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Hent todo
   useEffect(() => {
     const fetchTodo = async () => {
       try {
         setLoading(true);
-        // getTodoById => GET /Todo?filter=Id&TodoId=<id>
         const response = await todoService.getTodoById(id);
-
-        // Serveren kan returnere enten et object eller en liste [todo].
-        // Juster alt efter, hvad din server sender.
+        // Hvis serveren returnerer en array [todo], tager du [0], ellers returnerer den et object
         const singleTodo = Array.isArray(response) ? response[0] : response;
-
+        if (!singleTodo) {
+          setError("No todo found");
+          setLoading(false);
+          return;
+        }
         setTodo(singleTodo);
         setEditTitle(singleTodo.title);
         setEditDescription(singleTodo.description);
         setTasks(singleTodo.tasks || []);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch todo by id:", err);
+        console.error("Failed to fetch todo:", err);
         setError("Could not load todo.");
         setLoading(false);
       }
@@ -45,61 +49,7 @@ function TodoDetails() {
     fetchTodo();
   }, [id]);
 
-  // Hvis vi vil ændre en task
-  const handleTaskChange = (index, field, value) => {
-    const updated = [...tasks];
-    updated[index][field] = value;
-    setTasks(updated);
-  };
-
-  // Sæt en task til sletning
-  const handleDeleteTaskInUI = (taskId) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    setDeletedTaskIds((prev) => [...prev, taskId]);
-  };
-
-  // Klik på "Save" => opdater todo + tasks
-  const handleSave = async () => {
-    try {
-      // 1) Opdater selve todo
-      if (editTitle !== todo.title || editDescription !== todo.description) {
-        await todoService.updateTodo(todo.id, {
-          title: editTitle,
-          description: editDescription,
-        });
-      }
-
-      // 2) Opdater tasks
-      for (const t of tasks) {
-        if (t.id) {
-          await taskService.updateTask(t.id, {
-            description: t.description,
-            isCompleted: t.isCompleted,
-          });
-        } else {
-          // Evt. opret ny task, hvis man tillader at lave nye tasks her
-          // fx:
-          // await taskService.createTask(todo.id, {
-          //   description: t.description,
-          //   isCompleted: t.isCompleted
-          // });
-        }
-      }
-
-      // 3) Slet tasks
-      for (const delId of deletedTaskIds) {
-        await taskService.deleteTask(delId);
-      }
-
-      // Gå tilbage til /todos (eller forbliv på siden)
-      navigate("/todos");
-    } catch (err) {
-      console.error("Failed to save updates:", err);
-      setError("Could not save changes.");
-    }
-  };
-
-  // Slet hele todo
+  // Slet selve todo
   const handleDeleteTodo = async () => {
     if (!todo) return;
     try {
@@ -111,16 +61,63 @@ function TodoDetails() {
     }
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
-  if (!todo) return <div className="p-4">Todo not found.</div>;
+  // Klik på "Delete Todo" => vis confirm-modal
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  // Hvis brugeren klikker “Cancel” i confirm
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+  };
+
+  // Hvis brugeren klikker “Yes” i confirm
+  const handleConfirmDelete = () => {
+    setShowDeleteConfirm(false);
+    handleDeleteTodo();
+  };
+
+  // Opdater tasks, slet tasks, osv.
+  const handleSave = async () => {
+    // ... Samme logik som før, for at gemme todo + tasks
+    try {
+      if (editTitle !== todo.title || editDescription !== todo.description) {
+        await todoService.updateTodo(todo.id, {
+          title: editTitle,
+          description: editDescription,
+        });
+      }
+
+      for (const t of tasks) {
+        if (t.id) {
+          await taskService.updateTask(t.id, {
+            description: t.description,
+            isCompleted: t.isCompleted,
+          });
+        }
+      }
+
+      for (const delId of deletedTaskIds) {
+        await taskService.deleteTask(delId);
+      }
+
+      navigate("/todos");
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+      setError("Could not save changes.");
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+  if (!todo) return <div>Todo not found...</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-4 bg-white shadow">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Todo Details</h1>
         <button
-          onClick={handleDeleteTodo}
+          onClick={handleDeleteClick} // <-- i stedet for handleDeleteTodo
           className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
         >
           Delete Todo
@@ -146,7 +143,7 @@ function TodoDetails() {
       </div>
 
       <h2 className="text-lg font-bold mb-2">Tasks</h2>
-      {tasks.length === 0 && <p className="text-gray-500">No tasks</p>}
+      {tasks.length === 0 && <p>No tasks</p>}
       {tasks.map((task, index) => (
         <div key={task.id ?? index} className="border p-2 rounded mb-2">
           <div className="flex items-center space-x-2">
@@ -154,34 +151,29 @@ function TodoDetails() {
               type="text"
               className="flex-1 border rounded p-1"
               value={task.description}
-              onChange={(e) =>
-                handleTaskChange(index, "description", e.target.value)
-              }
+              onChange={(e) => {
+                const updated = [...tasks];
+                updated[index].description = e.target.value;
+                setTasks(updated);
+              }}
             />
             <label className="flex items-center">
               <input
                 type="checkbox"
                 className="mr-1"
                 checked={task.isCompleted}
-                onChange={(e) =>
-                  handleTaskChange(index, "isCompleted", e.target.checked)
-                }
+                onChange={(e) => {
+                  const updated = [...tasks];
+                  updated[index].isCompleted = e.target.checked;
+                  setTasks(updated);
+                }}
               />
               <span>Completed</span>
             </label>
           </div>
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={() => handleDeleteTaskInUI(task.id)}
-              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-            >
-              Delete Task
-            </button>
-          </div>
         </div>
       ))}
 
-      {/* Gem alle ændringer */}
       <div className="flex justify-end mt-4">
         <button
           onClick={handleSave}
@@ -190,6 +182,35 @@ function TodoDetails() {
           Save
         </button>
       </div>
+
+      {/** CONFIRM-DELETE MODAL */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* overlay */}
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50"></div>
+
+          <div className="bg-white p-6 rounded shadow-lg z-10 max-w-sm w-full">
+            <h2 className="text-lg font-bold mb-4">
+              You are about to delete this todo!
+            </h2>
+            <p className="mb-4">Are you sure?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleCancelDelete}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Yes, delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
