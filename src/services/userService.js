@@ -30,6 +30,16 @@ const userService = {
       throw error;
     }
   },
+  createChild: async (childData) => {
+    try {
+      const response = await api.post("/Child/create", childData);
+      return response.data; // fx status el. { child: {...} }
+    } catch (error) {
+      console.error("Failed to create child:", error);
+      throw error;
+    }
+  },
+  
 };
 
 export default userService;

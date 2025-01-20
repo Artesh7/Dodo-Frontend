@@ -13,7 +13,8 @@ import Childs from "./components/Childs";
 import { AuthProvider } from "./contexts/AuthContext";
 import CreateUser from "./components/CreateUser";
 import CreateTodo from "./components/CreateTodo";
-import TodoDetails from "./components/TodoDetails"; // <-- Ny komponent
+import TodoDetails from "./components/TodoDetails";
+import CreateChild from "./components/CreateChild"; // <-- Tilføj import
 
 function App() {
   return (
@@ -36,7 +37,6 @@ function App() {
               </MainLayout>
             }
           />
-
           <Route
             path="/signup"
             element={
@@ -45,7 +45,6 @@ function App() {
               </MainLayout>
             }
           />
-
           <Route
             path="/dashboard"
             element={
@@ -87,14 +86,24 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* Ny rute: vis en todo i detaljer, inkl tasks */}
           <Route
             path="/todo/:id"
             element={
               <ProtectedRoute>
                 <MainLayout>
                   <TodoDetails />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* NY ROUTE: CREATE CHILD */}
+          <Route
+            path="/create-child"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <CreateChild />
                 </MainLayout>
               </ProtectedRoute>
             }
