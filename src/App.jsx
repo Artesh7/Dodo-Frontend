@@ -12,7 +12,8 @@ import Todos from "./components/Todos";
 import Home from "./components/Home";
 import Childs from "./components/Childs";
 import { AuthProvider } from "./contexts/AuthContext";
-import CreateUser from "./components/CreateUser"; // <-- Tilføj denne import
+import CreateUser from "./components/CreateUser"; 
+import CreateTodo from "./components/CreateTodo"; // <-- Importér din nye CreateTodo-komponent
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
               </MainLayout>
             }
           />
-          
+
           {/* Ny route til sign up */}
           <Route
             path="/signup"
@@ -72,6 +73,18 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Childs />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Ny route til CreateTodo (tilføj todo) */}
+          <Route
+            path="/add-todo"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <CreateTodo />
                 </MainLayout>
               </ProtectedRoute>
             }
