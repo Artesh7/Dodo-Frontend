@@ -6,21 +6,21 @@ function CreateUser() {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // <-- Fejlbesked
   const { login } = useAuth();
 
-  // -- Forhindre scrolling på denne side
+  // Forhindre scrolling
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "auto";
     };
   }, []);
-  // -----------------------------------
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setErrorMessage(""); // Nulstil tidligere fejl
     try {
-      // 1. Opret bruger
       await userService.createUser({ userName, email, password });
       // 2. Log ind med samme credentials
       await login({ email, password });
@@ -28,14 +28,25 @@ function CreateUser() {
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Create user failed:", error);
+      const errMsg = error.response?.data?.error || "Could not create user";
+      setErrorMessage(errMsg);
     }
+  };
+
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value);
+    setErrorMessage("");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
+        
         <form onSubmit={handleSignup} className="space-y-4">
+          {/* Viser fejl, hvis den findes */}
+          {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+          
           <div>
             <label
               htmlFor="userName"
@@ -47,7 +58,7 @@ function CreateUser() {
               type="text"
               id="userName"
               value={userName}
-              onChange={(e) => setUserName(e.target.value)}
+              onChange={handleInputChange(setUserName)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -64,7 +75,7 @@ function CreateUser() {
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleInputChange(setEmail)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -81,7 +92,7 @@ function CreateUser() {
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handleInputChange(setPassword)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />

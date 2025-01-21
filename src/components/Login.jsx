@@ -5,13 +5,12 @@ import { useAuth } from "../contexts/AuthContext";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // Fejlbesked
   const { auth, login } = useAuth();
 
-  // --> Tilføj en useEffect, der forhindrer scrolling på denne side
   useEffect(() => {
-    document.body.style.overflow = "hidden"; 
+    document.body.style.overflow = "hidden";
     return () => {
-      // Når vi forlader Login-siden, nulstiller vi igen
       document.body.style.overflow = "auto";
     };
   }, []);
@@ -22,12 +21,20 @@ function Login() {
 
   const handleLogin = async (event) => {
     event.preventDefault();
+    setErrorMessage("");
     try {
       await login({ email, password });
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Login failed:", error);
+      const errMsg = error.response?.data?.error || "Invalid login attempt";
+      setErrorMessage(errMsg);
     }
+  };
+
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value);
+    setErrorMessage(""); 
   };
 
   return (
@@ -35,6 +42,12 @@ function Login() {
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
         <form onSubmit={handleLogin} className="space-y-4">
+          
+          {/* Fejlbesked */}
+          {errorMessage && (
+            <p className="text-red-500 text-sm">{errorMessage}</p>
+          )}
+
           <div>
             <label
               htmlFor="email"
@@ -46,7 +59,7 @@ function Login() {
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleInputChange(setEmail)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -62,7 +75,7 @@ function Login() {
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handleInputChange(setPassword)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -75,7 +88,6 @@ function Login() {
           </button>
         </form>
 
-        {/* SIGN UP-knap */}
         <div className="mt-4 text-center">
           <Link to="/signup" className="text-blue-500 hover:underline">
             Sign Up
