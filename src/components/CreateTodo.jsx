@@ -19,9 +19,7 @@ function CreateTodo() {
   const [children, setChildren] = useState([]);
 
   // Tasks-liste. Start evt. med 1 tom opgave
-  const [tasks, setTasks] = useState([
-    { description: "", isCompleted: false },
-  ]);
+  const [tasks, setTasks] = useState([{ description: "", isCompleted: false }]);
 
   // Hent profil (rolle) + childs (hvis parent)
   useEffect(() => {
@@ -63,12 +61,16 @@ function CreateTodo() {
   const handleCreateTodo = async () => {
     try {
       // 1) Opret selve todo
-      const created = await todoService.createTodo({ title, description });
+      const created = await todoService.createTodo({
+        title,
+        description,
+        childId,
+      });
       // created er fx { message: "...", todo: { id: "..." } }
-  
+
       // 2) Tag ID fra created.todo.id
       const newTodoId = created.todo.id;
-  
+
       // 3) Opret tasks med newTodoId
       for (const t of tasks) {
         if (t.description.trim()) {
@@ -78,14 +80,12 @@ function CreateTodo() {
           });
         }
       }
-  
+
       navigate("/todos");
     } catch (error) {
       console.error("Failed to create todo + tasks:", error);
     }
   };
-  
-  
 
   return (
     <div className="max-w-xl mx-auto p-4 bg-white shadow">
@@ -138,7 +138,9 @@ function CreateTodo() {
               type="text"
               placeholder="Task description"
               value={task.description}
-              onChange={(e) => handleTaskChange(index, "description", e.target.value)}
+              onChange={(e) =>
+                handleTaskChange(index, "description", e.target.value)
+              }
               className="flex-1 p-2 border border-gray-300 rounded mr-2"
             />
             <label className="flex items-center">
