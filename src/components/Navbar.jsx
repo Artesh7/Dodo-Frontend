@@ -33,6 +33,8 @@ function Navbar() {
       const profileData = await userService.getProfile();
       setProfile(profileData);
       setShowProfileModal(true);
+      // Hvis du vil lukke mobilmenu, kan du også gøre det her (valgfrit):
+      setIsMobileMenuOpen(false);
     } catch (error) {
       console.error("Failed to fetch profile:", error);
     }
@@ -44,24 +46,18 @@ function Navbar() {
     <nav className="bg-indigo-700 border-b border-indigo-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Venstre side: Logo */}
+          {/* Logo/brand til venstre */}
           <div className="flex items-center">
-            {/* 
-              Hvis man er logget ind => link til "/todos"
-              Hvis ikke logget ind => link til "/"
-            */}
-            <Link
-              to={auth.token ? "/todos" : "/"}
-              className="flex items-center"
-            >
+            {/* Link til /todos hvis logget ind, ellers / */}
+            <Link to={auth.token ? "/todos" : "/"} className="flex items-center">
               <img className="h-16 w-auto" src={Logo} alt="TODOZ Logo" />
               <span className="text-white text-xl font-bold ml-2">TODOZ</span>
             </Link>
           </div>
 
-          {/* Højre side: Desktop Navigation */}
+          {/* Desktop menu (skjult på mobile) */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Skjul Home-knap, når brugeren er logget ind */}
+            {/* Vis "Home" kun hvis ikke logget ind */}
             {!auth.token && (
               <Link
                 to="/"
@@ -144,7 +140,7 @@ function Navbar() {
             )}
           </div>
 
-          {/* Mobile-menu-knap (hamburger) */}
+          {/* Hamburger-knap (vises kun på mobile) */}
           <div className="-mr-2 flex md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -171,48 +167,64 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Mobile-menu */}
+      {/* Mobile menu (vises hvis isMobileMenuOpen === true) */}
       {isMobileMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {/* Home (kun hvis ikke logget ind) */}
             {!auth.token && (
               <Link
                 to="/"
+                onClick={() => setIsMobileMenuOpen(false)} // Luk menuen
                 className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
               >
                 Home
               </Link>
             )}
+
             {auth.token ? (
               <>
                 <Link
                   to="/todos"
+                  onClick={() => setIsMobileMenuOpen(false)} // Luk menuen
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
                 >
                   Todos
                 </Link>
+
                 {!isChild && (
                   <Link
                     to="/childs"
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
                   >
                     Childs
                   </Link>
                 )}
+
                 <Link
                   to="/add-todo"
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
                 >
                   Add Todo
                 </Link>
+
                 <button
-                  onClick={handleProfileClick}
+                  onClick={() => {
+                    handleProfileClick();
+                    setIsMobileMenuOpen(false); // Luk menu
+                  }}
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
                 >
                   Profile
                 </button>
+
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    logout();
+                    setIsMobileMenuOpen(false); // Luk menu
+                  }}
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
                 >
                   Logout
@@ -221,6 +233,7 @@ function Navbar() {
             ) : (
               <Link
                 to="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
                 className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
               >
                 Login
