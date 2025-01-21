@@ -9,12 +9,12 @@ function CreateUser() {
   const [errorMessage, setErrorMessage] = useState("");
   const { login } = useAuth();
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, []);
+  // useEffect(() => {
+  //   document.body.style.overflow = "hidden";
+  //   return () => {
+  //     document.body.style.overflow = "auto";
+  //   };
+  // }, []);
 
   // Nulstiller fejl, når brugeren skriver i feltet
   const handleInputChange = (setter) => (e) => {

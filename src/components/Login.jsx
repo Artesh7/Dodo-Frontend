@@ -8,12 +8,12 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState(""); // Fejlbesked
   const { auth, login } = useAuth();
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, []);
+  // useEffect(() => {
+  //   document.body.style.overflow = "hidden";
+  //   return () => {
+  //     document.body.style.overflow = "auto";
+  //   };
+  // }, []);
 
   if (auth.token) {
     return <Navigate to="/dashboard" />;

@@ -2,15 +2,15 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom"; // <-- VIGTIGT: importer Link
 
 function Home() {
-  useEffect(() => {
+  // useEffect(() => {
     // Prevent scrolling when on the home page
-    document.body.style.overflow = "hidden";
+    // document.body.style.overflow = "hidden";
 
     // Cleanup function to re-enable scrolling when leaving the page
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, []);
+    // return () => {
+      // document.body.style.overflow = "auto";
+    // };
+  // }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 pb-20">
