@@ -2,21 +2,22 @@ import React, { useEffect, useState } from "react";
 import todoService from "../services/todoService";
 import userService from "../services/userService";
 import TodoCard from "./TodoCard";
+import { Link } from "react-router-dom";
 
 const Todos = () => {
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [role, setRole] = useState(null);
 
-  // Hent rolle for at se, om man er child
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const profileData = await userService.getProfile();
         setRole(profileData.role);
-        // child => default filter "Mine"
+
         if (profileData.role?.toLowerCase() === "child") {
           setFilter("Mine");
         }
@@ -27,13 +28,17 @@ const Todos = () => {
     fetchProfile();
   }, []);
 
-  // Hent todos
   useEffect(() => {
     const fetchTodos = async () => {
       setLoading(true);
       try {
         const response = await todoService.getTodos(filter);
-        setTodos(response);
+        setTodos(
+          response.map((todo) => ({
+            ...todo,
+            isLoading: false,
+          }))
+        );
         setLoading(false);
       } catch (err) {
         setError("Failed to load todos.");
@@ -49,20 +54,42 @@ const Todos = () => {
 
   const isChild = role?.toLowerCase() === "child";
 
+  // Hvis stadig loading
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="p-4">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Tjek om listen er tom
+  if (!loading && todos.length === 0) {
+    return (
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4">Todos</h1>
+        <p className="mb-4">You currently have no todos.</p>
+        <Link
+          to="/add-todo"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Create Todo
+        </Link>
+      </div>
+    );
   }
 
   return (
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Todos</h1>
+
         {!isChild && (
           <select
             id="filter"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="block w-48 p-2 border border-gray-300 bg-white rounded shadow-sm focus:outline-none"
+            className="block w-48 p-2 border border-gray-300 bg-white rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="All">All Todos</option>
             <option value="Mine">My Todos</option>

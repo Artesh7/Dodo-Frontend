@@ -1,11 +1,20 @@
-import React, { useState } from "react";
-import { Navigate, Link } from "react-router-dom"; // <-- Bemærk Link import
+import React, { useState, useEffect } from "react";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { auth, login } = useAuth();
+
+  // --> Tilføj en useEffect, der forhindrer scrolling på denne side
+  useEffect(() => {
+    document.body.style.overflow = "hidden"; 
+    return () => {
+      // Når vi forlader Login-siden, nulstiller vi igen
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
   if (auth.token) {
     return <Navigate to="/dashboard" />;
@@ -68,10 +77,7 @@ function Login() {
 
         {/* SIGN UP-knap */}
         <div className="mt-4 text-center">
-          <Link
-            to="/signup"
-            className="text-blue-500 hover:underline"
-          >
+          <Link to="/signup" className="text-blue-500 hover:underline">
             Sign Up
           </Link>
         </div>

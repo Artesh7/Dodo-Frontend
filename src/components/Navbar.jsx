@@ -19,7 +19,7 @@ function Navbar() {
         try {
           const profileData = await userService.getProfile();
           setUserName(profileData.userName);
-          setRole(profileData.role); // Gem hele role-strengen
+          setRole(profileData.role);
         } catch (error) {
           console.error("Failed to fetch profile:", error);
         }
@@ -38,7 +38,6 @@ function Navbar() {
     }
   };
 
-  // Brug en hjælpemetode til at tjekke "child"
   const isChild = role && role.toLowerCase() === "child";
 
   return (
@@ -47,7 +46,14 @@ function Navbar() {
         <div className="flex justify-between h-16">
           {/* Venstre side: Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center">
+            {/* 
+              Hvis man er logget ind => link til "/todos"
+              Hvis ikke logget ind => link til "/"
+            */}
+            <Link
+              to={auth.token ? "/todos" : "/"}
+              className="flex items-center"
+            >
               <img className="h-16 w-auto" src={Logo} alt="TODOZ Logo" />
               <span className="text-white text-xl font-bold ml-2">TODOZ</span>
             </Link>
@@ -65,7 +71,6 @@ function Navbar() {
               </Link>
             )}
 
-            {/* Hvis logget ind */}
             {auth.token ? (
               <>
                 <Link
@@ -74,8 +79,6 @@ function Navbar() {
                 >
                   Todos
                 </Link>
-
-                {/* Childs-knappen: vises kun, hvis role !== 'child' */}
                 {!isChild && (
                   <Link
                     to="/childs"
@@ -84,15 +87,12 @@ function Navbar() {
                     Childs
                   </Link>
                 )}
-
                 <Link
                   to="/add-todo"
                   className="text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2"
                 >
                   Add Todo
                 </Link>
-
-                {/* Dropdown for profil/logout */}
                 <div className="relative">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -113,7 +113,7 @@ function Navbar() {
                         strokeLinejoin="round"
                         strokeWidth="2"
                         d="M19 9l-7 7-7-7"
-                      ></path>
+                      />
                     </svg>
                   </button>
                   {isDropdownOpen && (
@@ -175,7 +175,6 @@ function Navbar() {
       {isMobileMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {/* Skjul Home-knap, når logget ind */}
             {!auth.token && (
               <Link
                 to="/"
@@ -184,7 +183,6 @@ function Navbar() {
                 Home
               </Link>
             )}
-
             {auth.token ? (
               <>
                 <Link
@@ -193,8 +191,6 @@ function Navbar() {
                 >
                   Todos
                 </Link>
-
-                {/* Childs-knappen: kun hvis IKKE child */}
                 {!isChild && (
                   <Link
                     to="/childs"
@@ -203,14 +199,12 @@ function Navbar() {
                     Childs
                   </Link>
                 )}
-
                 <Link
                   to="/add-todo"
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"
                 >
                   Add Todo
                 </Link>
-
                 <button
                   onClick={handleProfileClick}
                   className="text-white hover:bg-gray-900 hover:text-white block rounded-md px-3 py-2"

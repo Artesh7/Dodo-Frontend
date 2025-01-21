@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom"; // <-- VIGTIGT: importer Link
 
 function Home() {
   useEffect(() => {
@@ -13,7 +14,7 @@ function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 pb-20">
-      <div className="max-w-5xl mx-auto text-center px-6 pt-20   pb-16 bg-white shadow-lg rounded-3xl">
+      <div className="max-w-5xl mx-auto text-center px-6 pt-20 pb-16 bg-white shadow-lg rounded-3xl">
         <h1 className="text-4xl font-extrabold text-indigo-700 mb-6">
           Welcome to TODOZ!
         </h1>
@@ -43,13 +44,14 @@ function Home() {
             </p>
           </div>
         </div>
-        <div className="mt-20 ">
-          <a
-            href="/todos"
+        <div className="mt-20">
+          {/* Brug Link i stedet for <a>, og peg på /login */}
+          <Link
+            to="/login"
             className="bg-indigo-700 text-white py-2 px-6 rounded hover:bg-indigo-600 transition"
           >
             Get Started
-          </a>
+          </Link>
         </div>
       </div>
     </div>
