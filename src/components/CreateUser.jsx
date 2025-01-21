@@ -28,7 +28,7 @@ function CreateUser() {
     try {
       await userService.createUser({ userName, email, password });
       await login({ email, password });
-      window.location.href = "/dashboard";
+      window.location.href = "/todos";  //ændret
     } catch (error) {
       console.error("Create user failed:", error);
       const errMsg = error.response?.data?.error || "Could not create user";

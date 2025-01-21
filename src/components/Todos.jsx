@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import todoService from "../services/todoService";
 import userService from "../services/userService";
 import TodoCard from "./TodoCard";
+import SkeletonTodoCard from "./SkeletonTodoCard"; // <- import your skeleton
 import { Link } from "react-router-dom";
 
 const Todos = () => {
@@ -54,16 +55,21 @@ const Todos = () => {
 
   const isChild = role?.toLowerCase() === "child";
 
-  // Hvis stadig loading
+  // Shimmer/skeleton loading
   if (loading) {
     return (
       <div className="p-4">
-        <p>Loading...</p>
+        <h1 className="text-2xl font-bold mb-4">Todos</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <SkeletonTodoCard key={index} />
+          ))}
+        </div>
       </div>
     );
   }
 
-  // Tjek om listen er tom
+  // If no todos
   if (!loading && todos.length === 0) {
     return (
       <div className="p-4">
@@ -84,18 +90,27 @@ const Todos = () => {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Todos</h1>
 
-        {!isChild && (
-          <select
-            id="filter"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="block w-48 p-2 border border-gray-300 bg-white rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="flex items-center gap-2">
+          <Link
+            to="/add-todo"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded"
           >
-            <option value="All">All Todos</option>
-            <option value="Mine">My Todos</option>
-            <option value="Child">Child's Todos</option>
-          </select>
-        )}
+            Create Todo
+          </Link>
+
+          {!isChild && (
+            <select
+              id="filter"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="block w-48 p-2 border border-gray-300 bg-white rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="All">All Todos</option>
+              <option value="Mine">My Todos</option>
+              <option value="Child">Child's Todos</option>
+            </select>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

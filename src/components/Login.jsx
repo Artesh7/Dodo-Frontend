@@ -34,7 +34,7 @@ function Login() {
 
   const handleInputChange = (setter) => (e) => {
     setter(e.target.value);
-    setErrorMessage(""); 
+    setErrorMessage("");
   };
 
   return (
@@ -42,8 +42,6 @@ function Login() {
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
         <form onSubmit={handleLogin} className="space-y-4">
-          
-        
           <div>
             <label
               htmlFor="email"
@@ -76,8 +74,8 @@ function Login() {
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-           {/* Fejlbesked */}
-           {errorMessage && (
+          {/* Fejlbesked */}
+          {errorMessage && (
             <p className="text-red-500 text-sm">{errorMessage}</p>
           )}
 
