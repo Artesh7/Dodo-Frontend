@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 function Login() {
@@ -7,6 +7,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // Fejlbesked
   const { auth, login } = useAuth();
+  const navigate = useNavigate();
 
   // useEffect(() => {
   //   document.body.style.overflow = "hidden";
@@ -16,7 +17,7 @@ function Login() {
   // }, []);
 
   if (auth.token) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/todos" />;
   }
 
   const handleLogin = async (event) => {
@@ -24,7 +25,7 @@ function Login() {
     setErrorMessage("");
     try {
       await login({ email, password });
-      window.location.href = "/todos";
+      navigate("/todos");
     } catch (error) {
       console.error("Login failed:", error);
       const errMsg = error.response?.data?.error || "Invalid login attempt";
