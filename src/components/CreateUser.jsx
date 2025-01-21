@@ -6,10 +6,9 @@ function CreateUser() {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // <-- Fejlbesked
+  const [errorMessage, setErrorMessage] = useState("");
   const { login } = useAuth();
 
-  // Forhindre scrolling
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -17,14 +16,18 @@ function CreateUser() {
     };
   }, []);
 
+  // Nulstiller fejl, når brugeren skriver i feltet
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value);
+    setErrorMessage("");
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Nulstil tidligere fejl
+    setErrorMessage("");
     try {
       await userService.createUser({ userName, email, password });
-      // 2. Log ind med samme credentials
       await login({ email, password });
-      // 3. Send bruger til dashboard
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Create user failed:", error);
@@ -33,20 +36,12 @@ function CreateUser() {
     }
   };
 
-  const handleInputChange = (setter) => (e) => {
-    setter(e.target.value);
-    setErrorMessage("");
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
         
         <form onSubmit={handleSignup} className="space-y-4">
-          {/* Viser fejl, hvis den findes */}
-          {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
-          
           <div>
             <label
               htmlFor="userName"
@@ -97,6 +92,11 @@ function CreateUser() {
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
+          {/* Fejlbesked LIGE her, over knappen */}
+          {errorMessage && (
+            <p className="text-red-500 text-sm">{errorMessage}</p>
+          )}
 
           <button
             type="submit"
