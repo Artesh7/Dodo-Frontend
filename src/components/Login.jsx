@@ -24,7 +24,7 @@ function Login() {
     setErrorMessage("");
     try {
       await login({ email, password });
-      window.location.href = "/dashboard";
+      window.location.href = "/todos";
     } catch (error) {
       console.error("Login failed:", error);
       const errMsg = error.response?.data?.error || "Invalid login attempt";

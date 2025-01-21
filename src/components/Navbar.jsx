@@ -18,7 +18,7 @@ function Navbar() {
       if (auth.token) {
         try {
           const profileData = await userService.getProfile();
-          setUserName(profileData.userName);
+          setUserName(profileData.userName.toUpperCase());
           setRole(profileData.role);
         } catch (error) {
           console.error("Failed to fetch profile:", error);
